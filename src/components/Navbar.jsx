@@ -56,7 +56,7 @@ const Navbar = ({ onOpenDonate }) => {
   const navLinks = [
     { name: 'Mission 2040', href: 'vision' },
     { name: 'Impact Report', href: 'impact' },
-    { name: 'Our Team', href: 'team' }, 
+    { name: 'Our Team', href: '/team' }, 
   ];
 
   return (
