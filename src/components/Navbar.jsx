@@ -156,14 +156,14 @@ const Navbar = ({ onOpenDonate }) => {
             exit={{ opacity: 0, y: -20 }}
             className="lg:hidden absolute top-full left-0 w-full bg-white border-t border-slate-100 p-8 flex flex-col gap-6 shadow-2xl"
           >
-            {navLinks.map((link) => (
+           {navLinks.map((link) => (
               <a 
                 key={link.name}
-                href={`#${link.href}`} 
-                onClick={() => setIsOpen(false)}
-                className="text-[#1e293b] font-bold uppercase text-xs tracking-widest"
+                href={link.href}
+                className="text-slate-800 font-bold text-[11px] uppercase tracking-widest hover:text-[#0052AD] transition-colors relative group"
               >
                 {link.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00A859] transition-all group-hover:w-full" />
               </a>
             ))}
             <button 
