@@ -94,7 +94,7 @@ const Navbar = ({ onOpenDonate }) => {
             {navLinks.map((link) => (
               <a 
                 key={link.name}
-                href={`#${link.href}`} 
+                href={link.href}
                 className="text-slate-800 font-bold text-[11px] uppercase tracking-widest hover:text-[#0052AD] transition-colors relative group"
               >
                 {link.name}
