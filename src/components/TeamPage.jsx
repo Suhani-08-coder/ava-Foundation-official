@@ -14,43 +14,37 @@ const leadershipTeam = [
     name: "Brijesh Kumar Yadav",
     role: "Founder Director",
     description: "Leading the foundation's strategic vision. Passionate about bringing systemic changes to grassroots education and healthcare.",
-    photo: "/team/brijesh.jpg", 
+    photo: "/team/BrijeshYadav.jpeg", 
   },
   {
     id: 2,
     name: "Shivam Yadav",
     role: "CEO & Co-Founder",
     description: "Overseeing daily operations and volunteer coordination. Ensures that all on-ground missions run smoothly and ethically.",
-    photo: "/team/shivam.jpeg", 
+    photo: "/team/sh.jpeg", 
   },
   {
     id: 3,
     name: "Suhani Yadav",
     role: "Chief Technical Officer (CTO)",
     description: "Manages the digital infrastructure, AVAF platform development, and technical resource allocation for maximum foundation impact.",
-    photo: "/team/suhani.jpeg", 
+    photo: "/team/su.jpeg", 
   },
   {
     id: 4,
     name: "Shresth Shukla",
     role: "Chief Marketing Officer (CMO)",
     description: "Leads marketing strategies and outreach programs to expand the foundation's visibility and engagement.",
-    photo: "/team/shrestha.jpeg", 
+    photo: "/team/shr.jpeg", 
   },
   {
     id: 5,
     name: "Shiv Vishvakarma",
     role: "Chief Regional Officer (CRO)",
     description: "Oversees regional operations and ensures effective implementation of foundation initiatives across different zones.",
-    photo: "/team/shiv.jpeg", 
+    photo:"/team/sd.jpeg" , 
   },
-  {
-    id: 6,
-    name: "Ayush Dixit",
-    role: "Regional Head",
-    description: "Coordinates regional activities and manages on-ground teams for efficient mission execution.",
-    photo: "/team/ayush.jpg", 
-  }
+  
 ];
 
 const TeamCard = ({ member }) => (

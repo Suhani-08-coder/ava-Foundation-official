@@ -144,9 +144,35 @@ app.post('/api/auth/login', async (req, res) => {
 
 // 3. Volunteers
 app.post('/api/volunteers/signup', async (req, res) => {
-  try { res.status(201).json(await Volunteer.create(req.body)); }
-  catch (e) { res.status(500).send(e.message); }
+  try {
+    const volunteer = await Volunteer.create(req.body);
+    
+    const mailOptions = {
+      from: `"AVAF Team" <${process.env.EMAIL_USER}>`,
+      to: volunteer.email, 
+      subject: 'Welcome to AVAF - 2040 Vision',
+      html: `<h3>Namaste ${volunteer.name},</h3>
+             <p>Thank you for joining the <b>Awadh Vidya Arogya Foundation</b>.</p>
+             <p>Our team will contact you soon regarding your interest in ${volunteer.interest}.</p>`
+    };
+
+ 
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Critical Email Error:", err);
+      } else {
+        console.log("Email successfully sent:", info.response);
+      }
+    });
+
+    res.status(201).json({ success: true, data: volunteer });
+
+  } catch (error) {
+    console.error("Database/Signup Error:", error);
+    res.status(500).json({ success: false, message: "Signup failed" });
+  }
 });
+   
 app.get('/api/admin/volunteers', async (_, res) => {
   try { res.json(await Volunteer.find().sort({ joinedAt: -1 })); }
   catch (e) { res.status(500).send(e.message); }
