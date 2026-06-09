@@ -1,9 +1,95 @@
 import React, { useState } from 'react';
 import { Heart, ShieldCheck, QrCode, ArrowRight, Sparkles } from 'lucide-react';
+import { API_BASE_URL } from '../config'; // Apne config se base URL liya
 
 const Donate = ({ onOpenDonate }) => {
   const [amount, setAmount] = useState('1000');
   const presets = ['500', '1000', '2500', '5000'];
+  const [loading, setLoading] = useState(false);
+
+  // Razorpay Payment Handler Logic
+  const handleRazorpayPayment = async () => {
+    // Donation ke liye name aur email required hai, use prompt se le rahe hain.
+    // Aap chahein toh isse badal kar koi custom form ya modal bhi bana sakte hain.
+    const name = prompt("Kripya apna naam darj karein (Name):");
+    const email = prompt("Kripya apna email darj karein (Email):");
+
+    if (!name || !email) {
+      alert("Name aur Email dono zaroori hain!");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Backend se Razorpay Order ID generate karwayein
+      const orderRes = await fetch(`${API_BASE_URL}/api/donate/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        alert("Backend se order create nahi ho paya. Dobara koshish karein.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Razorpay Checkout options setup karein
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Frontend .env se key uthayega
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "Awadh Vidya Arogya Foundation",
+        description: "Support the 2040 Vision",
+        order_id: orderData.order.id,
+        handler: async function (response) {
+          // Jab user successfully pay kar dega, tab yeh chalega:
+          try {
+            const verifyRes = await fetch(`${API_BASE_URL}/api/donate/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name,
+                email,
+                amount,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              alert("Dhanyawad! Aapka donation safal raha aur receipt email par bhej di gayi hai.");
+            } else {
+              alert("Payment verification fail ho gayi. Kripya admin se sampark karein.");
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Payment verify karne mein error aayi.");
+          }
+        },
+        prefill: {
+          name: name,
+          email: email,
+        },
+        theme: {
+          color: "#0052AD", // AVAF ka primary blue color
+        },
+      };
+
+      // Razorpay Popup window open karein
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Payment Gateway Error:", error);
+      alert("Razorpay gateway open karne mein dikkat aayi.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section id="donate" className="relative py-24 md:py-32 bg-white px-6 overflow-hidden font-sans">
@@ -75,17 +161,19 @@ const Donate = ({ onOpenDonate }) => {
             <span className="absolute left-7 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-2xl">₹</span>
           </div>
 
+          {/* Button par handleRazorpayPayment trigger kiya */}
           <button 
-            onClick={onOpenDonate}
-            className="w-full flex items-center justify-center gap-3 bg-[#0a1f44] text-white py-6 rounded-2xl font-bold text-[13px] uppercase tracking-[0.15em] transition-all hover:bg-[#0052AD] hover:-translate-y-1 shadow-lg active:scale-[0.98]"
+            onClick={handleRazorpayPayment}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 bg-[#0a1f44] text-white py-6 rounded-2xl font-bold text-[13px] uppercase tracking-[0.15em] transition-all hover:bg-[#0052AD] hover:-translate-y-1 shadow-lg active:scale-[0.98] disabled:opacity-50"
           >
-            Initialize Impact <ArrowRight size={16} />
+            {loading ? "Processing..." : "Initialize Impact"} <ArrowRight size={16} />
           </button>
 
           <div className="mt-8 pt-8 border-t border-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-3">
                <QrCode size={18} className="text-[#0052AD]" />
-               <span className="text-[11px] font-semibold text-slate-400">Secure UPI Checkout</span>
+               <span className="text-[11px] font-semibold text-slate-400">Secure Razorpay Checkout</span>
             </div>
             <button 
               onClick={onOpenDonate}

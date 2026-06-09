@@ -8,24 +8,23 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+// 1. Razorpay Package ko import kiya
+const Razorpay = require('razorpay');
 
-// Ensure this file exists in your utils folder
 const { buildReceipt } = require('./utils/pdfGenerator'); 
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'avaf_secure_node_secret';
 
-// --- MIDDLEWARE (Ab sahi order mein hai) ---
 app.use(cors({ 
-  origin: ['https://awadhvidyaarogyafoundation.org', 'https://www.awadhvidyaarogyafoundation.org', 'http://localhost:5173'],  
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  optionsSuccessStatus: 204
+  origin: ['https://awadhvidyaarogyafoundation.org', 'https://www.awadhvidyaarogyafoundation.org'], 
+  credentials: true 
 }));
 app.use(express.json());
 
-// Cloudinary Config
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -34,10 +33,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => ({ 
-    folder: 'avaf_media', 
-    resource_type: 'auto' 
-  }),
+  params: async (req, file) => ({ folder: 'avaf_media', resource_type: 'auto' }),
 });
 const upload = multer({ storage }); 
 
@@ -46,35 +42,40 @@ const transporter = nodemailer.createTransport({
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
 
-// --- MODELS ---
-const Admin = mongoose.models.Admin || mongoose.model('Admin', new mongoose.Schema({
+// 2. Razorpay Instance ko initialize kiya (.env se keys lekar)
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+const Admin = mongoose.model('Admin', new mongoose.Schema({
   userid: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true }
 }));
 
-const Donation = mongoose.models.Donation || mongoose.model('Donation', new mongoose.Schema({
+const Donation = mongoose.model('Donation', new mongoose.Schema({
   name: String, email: String, amount: Number, transactionId: String,
   date: { type: Date, default: Date.now }, receiptSent: { type: Boolean, default: false }
 }));
 
-const Volunteer = mongoose.models.Volunteer || mongoose.model('Volunteer', new mongoose.Schema({
+const Volunteer = mongoose.model('Volunteer', new mongoose.Schema({
   name: String, email: String, college: String, interest: String,
   certIssued: { type: Boolean, default: false }, joinedAt: { type: Date, default: Date.now }
 }));
 
-const GlobalStats = mongoose.models.GlobalStats || mongoose.model('GlobalStats', new mongoose.Schema({
+const GlobalStats = mongoose.model('GlobalStats', new mongoose.Schema({
   literacyImpact: { type: Number, default: 0 }, arogyaReach: { type: Number, default: 0 },
   lastUpdated: { type: Date, default: Date.now }
 }));
 
-const Media = mongoose.models.Media || mongoose.model('Media', new mongoose.Schema({
+const Media = mongoose.model('Media', new mongoose.Schema({
   title: String, type: { type: String, enum: ['photo', 'video'] }, url: String, publicId: String,
   category: { type: String, enum: ['vidya', 'arogya', 'mission', 'explore'], default: 'mission' },
   uploadedAt: { type: Date, default: Date.now }
 }));
 
-const Mission = mongoose.models.Mission || mongoose.model('Mission', new mongoose.Schema({
+const Mission = mongoose.model('Mission', new mongoose.Schema({
   title: String, description: String, progress: { type: Number, default: 0 },
   updatedAt: { type: Date, default: Date.now }
 }));
@@ -82,25 +83,51 @@ const Mission = mongoose.models.Mission || mongoose.model('Mission', new mongoos
 // --- DATABASE CONNECTION ---
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
-    console.log("🚀 AVAF Database Connected");
+    console.log(" AVAF Database Connected");
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
       await Admin.create({ userid: 'SUHANI_01', password: 'Suhani@2005', name: 'Suhani Yadav' });
-      console.log("✅ Default Admin created.");
+      console.log("Default Admin created.");
     }
   })
-  .catch(err => console.error("❌ MongoDB Error:", err));
+  .catch(err => console.error(err));
 
 // --- ROUTES ---
 
-// 1. Donation
-app.post('/api/donate', async (req, res) => {
-  const { name, email, amount, transactionId } = req.body;
+// [NEW] 3. Razorpay Order Create karne ka Route
+app.post('/api/donate/create-order', async (req, res) => {
+  const { amount } = req.body; 
   try {
-    const newDonation = await Donation.create({ name, email, amount, transactionId });
+    const options = {
+      amount: Number(amount) * 100, // Razorpay paise me amount leta hai (₹1 = 100 paise)
+      currency: "INR",
+      receipt: `receipt_${Date.now()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    console.error("Order Creation Error:", error);
+    res.status(500).json({ success: false, message: "Order creation failed" });
+  }
+});
+
+// [UPDATED] 4. Razorpay Payment Verify karne aur PDF Receipt bhejne ka Route
+app.post('/api/donate/verify', async (req, res) => {
+  const { name, email, amount, razorpay_payment_id } = req.body;
+  try {
+    // Database mein entry create karein (transactionId ki jagah razorpay_payment_id jayega)
+    const newDonation = await Donation.create({ 
+      name, 
+      email, 
+      amount: Number(amount), 
+      transactionId: razorpay_payment_id 
+    });
+    
+    // Generate PDF
     const stream = [];
     buildReceipt(
-      { name, email, amount, transactionId },
+      { name, email, amount, transactionId: razorpay_payment_id },
       (chunk) => stream.push(chunk),
       () => {
         const pdfBuffer = Buffer.concat(stream);
@@ -109,100 +136,59 @@ app.post('/api/donate', async (req, res) => {
           to: email, 
           subject: 'Donation Receipt - AVAF',
           html: `<h3>Namaste ${name},</h3><p>Thank you for donating <b>₹${amount}</b>.</p>`,
-          attachments: [{ filename: `Receipt_${transactionId}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+          attachments: [{ filename: `Receipt_${razorpay_payment_id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
         };
         transporter.sendMail(mailOptions, async (err) => {
           if (!err) { 
             newDonation.receiptSent = true; 
             await newDonation.save(); 
           }
+          res.status(200).json({ success: true, message: "Receipt Sent" });
         });
-        res.status(200).json({ success: true, message: "Receipt Processed" });
       }
     );
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-app.get('/api/admin/donations', async (_, res) => {
-  try { res.json(await Donation.find().sort({ date: -1 })); }
-  catch (e) { res.status(500).send(e.message); }
-});
-
-// 2. Auth
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { userid, password } = req.body;
-    const validUser = await Admin.findOne({ userid, password });
-    if (validUser) {
-      const token = jwt.sign({ userid: validUser.userid }, JWT_SECRET, { expiresIn: '24h' });
-      res.json({ token, user: { name: validUser.name, userid: validUser.userid } });
-    } else {
-      res.status(401).json({ message: "Invalid Credentials" });
-    }
-  } catch (e) { res.status(500).send(e.message); }
-});
-
-// 3. Volunteers
-app.post('/api/volunteers/signup', async (req, res) => {
-  try {
-    const volunteer = await Volunteer.create(req.body);
-    
-    const mailOptions = {
-      from: `"AVAF Team" <${process.env.EMAIL_USER}>`,
-      to: volunteer.email, 
-      subject: 'Welcome to AVAF - 2040 Vision',
-      html: `<h3>Namaste ${volunteer.name},</h3>
-             <p>Thank you for joining the <b>Awadh Vidya Arogya Foundation</b>.</p>
-             <p>Our team will contact you soon regarding your interest in ${volunteer.interest}.</p>`
-    };
-
- 
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error("Critical Email Error:", err);
-      } else {
-        console.log("Email successfully sent:", info.response);
-      }
-    });
-
-    res.status(201).json({ success: true, data: volunteer });
-
-  } catch (error) {
-    console.error("Database/Signup Error:", error);
-    res.status(500).json({ success: false, message: "Signup failed" });
+  } catch (error) { 
+    console.error("Verification Error:", error);
+    res.status(500).json({ success: false, message: "Error processing payment verification" }); 
   }
 });
-   
-app.get('/api/admin/volunteers', async (_, res) => {
-  try { res.json(await Volunteer.find().sort({ joinedAt: -1 })); }
-  catch (e) { res.status(500).send(e.message); }
+
+app.get('/api/admin/donations', async (req, res) => res.json(await Donation.find().sort({ date: -1 })));
+
+// Auth
+app.post('/api/auth/login', async (req, res) => {
+  const { userid, password } = req.body;
+  const validUser = await Admin.findOne({ userid, password });
+  if (validUser) {
+    const token = jwt.sign({ userid: validUser.userid }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, user: { name: validUser.name, userid: validUser.userid } });
+  } else {
+    res.status(401).json({ message: "Invalid Credentials" });
+  }
 });
 
-// 4. Stats
-app.get('/api/admin/impact-stats', async (_, res) => {
-  try {
-    let stats = await GlobalStats.findOne();
-    if (!stats) stats = await GlobalStats.create({});
-    res.json(stats);
-  } catch (e) { res.status(500).send(e.message); }
-});
-app.post('/api/admin/update-impact', async (req, res) => {
-  try { res.json(await GlobalStats.findOneAndUpdate({}, req.body, { upsert: true, new: true })); }
-  catch (e) { res.status(500).send(e.message); }
+app.post('/api/admin/change-password', async (req, res) => {
+  const { userid, oldPassword, newPassword } = req.body;
+  const admin = await Admin.findOne({ userid, password: oldPassword });
+  if (!admin) return res.status(400).json({ message: "Incorrect Old Password" });
+  admin.password = newPassword;
+  await admin.save();
+  res.json({ message: "Success" });
 });
 
-// 5. Missions
-app.get('/api/missions', async (_, res) => {
-  try { res.json(await Mission.find().sort({ updatedAt: -1 })); }
-  catch (e) { res.status(500).send(e.message); }
-});
+app.post('/api/volunteers/signup', async (req, res) => res.status(201).json(await Volunteer.create(req.body)));
+app.get('/api/admin/volunteers', async (req, res) => res.json(await Volunteer.find().sort({ joinedAt: -1 })));
 
-// 6. Media
-app.get('/api/media', async (_, res) => {
-  try { res.json(await Media.find().sort({ uploadedAt: -1 })); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+app.get('/api/admin/impact-stats', async (req, res) => {
+  let stats = await GlobalStats.findOne() || await GlobalStats.create({});
+  res.json(stats);
 });
+app.post('/api/admin/update-impact', async (req, res) => res.json(await GlobalStats.findOneAndUpdate({}, req.body, { upsert: true, new: true })));
 
+app.get('/api/missions', async (req, res) => res.json(await Mission.find().sort({ updatedAt: -1 })));
+app.post('/api/admin/missions', async (req, res) => res.status(201).json(await Mission.create(req.body)));
+
+app.get('/api/media', async (req, res) => res.json(await Media.find().sort({ uploadedAt: -1 })));
 app.post('/api/admin/upload-media', upload.single('mediaFile'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file" });
@@ -211,13 +197,22 @@ app.post('/api/admin/upload-media', upload.single('mediaFile'), async (req, res)
   } catch (err) { res.status(500).json({ message: "Upload failed" }); }
 });
 
-// --- FRONTEND SERVING ---
-const frontendPath = path.join(__dirname, '../dist');
-app.use(express.static(frontendPath));
-
-
-app.get(/^\/(?!api).*/, (_, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+app.delete('/api/admin/media/:id', async (req, res) => {
+  try {
+    const media = await Media.findById(req.params.id);
+    if (media.publicId) await cloudinary.uploader.destroy(media.publicId, { resource_type: media.type === 'video' ? 'video' : 'image' });
+    await Media.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) { res.status(500).json({ message: "Delete failed" }); }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+const frontendPath = path.join(__dirname, '../dist'); 
+
+app.use(express.static(frontendPath));
+
+app.use((req, res , next) => {
+  if (req.path.startsWith('/api')) 
+    return next();
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+app.listen(PORT, () => console.log(`🚀 Server Port ${PORT}`));

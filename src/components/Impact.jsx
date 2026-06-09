@@ -12,7 +12,7 @@ const Impact = ({ onOpenGallery }) => {
   useEffect(() => {
     const fetchLiveMetrics = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/admin/impact-stats');
+        const res = await fetch('http://localhost:8080 /api/admin/impact-stats');
         const data = await res.json();
         if (data) {
           setImpactData({

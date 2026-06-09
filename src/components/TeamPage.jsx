@@ -21,29 +21,58 @@ const leadershipTeam = [
     name: "Shivam Yadav",
     role: "CEO & Co-Founder",
     description: "Overseeing daily operations and volunteer coordination. Ensures that all on-ground missions run smoothly and ethically.",
-    photo: "/team/sh.jpeg", 
+    photo: "/team/ShivamYadav.jpeg", 
   },
   {
     id: 3,
+    name: "Dr.Neha Tiwari",
+    role: "Community Health Director",
+    description: "Oversees regional operations and ensures effective implementation of foundation initiatives across different zones.",
+    photo:"/team/NehaTiwari.jpeg" , 
+  },
+  {
+    id: 4,
     name: "Suhani Yadav",
     role: "Chief Technical Officer (CTO)",
     description: "Manages the digital infrastructure, AVAF platform development, and technical resource allocation for maximum foundation impact.",
     photo: "/team/su.jpeg", 
   },
   {
-    id: 4,
+    id: 5,
     name: "Shresth Shukla",
     role: "Chief Marketing Officer (CMO)",
     description: "Leads marketing strategies and outreach programs to expand the foundation's visibility and engagement.",
-    photo: "/team/shr.jpeg", 
+    photo: "/team/shrestha.jpeg", 
+  },
+   {
+    id: 6,
+    name: "Sonali Tiwari",
+    role: "Chief Marketing Officer (CMO)",
+    description: "Leads marketing strategies and outreach programs to expand the foundation's visibility and engagement.",
+    photo: "/team/SonaliTiwari.jpeg", 
   },
   {
-    id: 5,
+    id: 7,
     name: "Shiv Vishvakarma",
     role: "Chief Regional Officer (CRO)",
     description: "Oversees regional operations and ensures effective implementation of foundation initiatives across different zones.",
     photo:"/team/sd.jpeg" , 
   },
+   {
+    id: 8,
+    name: "Manvendra Pratap Singh",
+    role: "Secretary",
+    description: "Ensures smooth coordination , maintain records and support the effective functioning of the AVA foundatdation.",
+    photo:"/team/ManvendraPratapSingh.jpeg" , 
+  },
+  {
+    id: 9,
+    name: "Anurag Ojha",
+    role: "Joint Secretary(JS)",
+    description: "Assists in managing organizational activities and ensures effective coordination among team members.",
+    photo:"/team/AnuragOjha.jpeg" , 
+  },
+ 
   
 ];
 
