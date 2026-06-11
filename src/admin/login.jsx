@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, User, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, User } from 'lucide-react';
+import { API_BASE_URL } from '../config'; 
 
 const Login = () => {
   const [formData, setFormData] = useState({ userid: '', password: '' });
@@ -14,7 +15,8 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -23,15 +25,14 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        
         localStorage.setItem('avaf_token', data.token);
         localStorage.setItem('avaf_user', JSON.stringify(data.user));
-        navigate('/dashboard');
+        navigate('/admin');
       } else {
         setError(data.message || 'Access Denied');
       }
     } catch (err) {
-      setError('Server connection failed. Is your backend running?');
+      setError('Server connection failed. Check internet or API URL.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ const Login = () => {
             <input
               type="text"
               placeholder="ADMIN ID"
-              className="w-full pl-14 pr-6 py-5 bg-slate-50 rounded-2xl outline-none text-xs font-bold tracking-widest"
+              className="w-full pl-14 pr-6 py-5 bg-slate-50 rounded-2xl outline-none text-xs font-bold tracking-widest text-slate-800"
               value={formData.userid}
               onChange={(e) => setFormData({ ...formData, userid: e.target.value })}
               required
@@ -65,7 +66,7 @@ const Login = () => {
             <input
               type="password"
               placeholder="SECURE KEY"
-              className="w-full pl-14 pr-6 py-5 bg-slate-50 rounded-2xl outline-none text-xs font-bold tracking-widest"
+              className="w-full pl-14 pr-6 py-5 bg-slate-50 rounded-2xl outline-none text-xs font-bold tracking-widest text-slate-800"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required

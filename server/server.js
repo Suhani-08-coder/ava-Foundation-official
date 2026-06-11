@@ -8,7 +8,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-// 1. Razorpay Package ko import kiya
+
 const Razorpay = require('razorpay');
 
 const { buildReceipt } = require('./utils/pdfGenerator'); 
@@ -41,8 +41,6 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
-
-// 2. Razorpay Instance ko initialize kiya (.env se keys lekar)
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -94,12 +92,12 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // --- ROUTES ---
 
-// [NEW] 3. Razorpay Order Create karne ka Route
+// [NEW] 3. Razorpay Order  Route
 app.post('/api/donate/create-order', async (req, res) => {
   const { amount } = req.body; 
   try {
     const options = {
-      amount: Number(amount) * 100, // Razorpay paise me amount leta hai (₹1 = 100 paise)
+      amount: Number(amount) * 100, 
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
@@ -112,11 +110,11 @@ app.post('/api/donate/create-order', async (req, res) => {
   }
 });
 
-// [UPDATED] 4. Razorpay Payment Verify karne aur PDF Receipt bhejne ka Route
+
 app.post('/api/donate/verify', async (req, res) => {
   const { name, email, amount, razorpay_payment_id } = req.body;
   try {
-    // Database mein entry create karein (transactionId ki jagah razorpay_payment_id jayega)
+    
     const newDonation = await Donation.create({ 
       name, 
       email, 
