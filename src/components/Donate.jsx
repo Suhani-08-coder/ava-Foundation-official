@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { Heart, ShieldCheck, QrCode, ArrowRight, Sparkles } from 'lucide-react';
-import { API_BASE_URL } from '../config'; // Apne config se base URL liya
+import { API_BASE_URL } from '../config'; 
 
 const Donate = ({ onOpenDonate }) => {
   const [amount, setAmount] = useState('1000');
   const presets = ['500', '1000', '2500', '5000'];
   const [loading, setLoading] = useState(false);
 
-  // Razorpay Payment Handler Logic
   const handleRazorpayPayment = async () => {
-    // Donation ke liye name aur email required hai, use prompt se le rahe hain.
-    // Aap chahein toh isse badal kar koi custom form ya modal bhi bana sakte hain.
     const name = prompt("Kripya apna naam darj karein (Name):");
     const email = prompt("Kripya apna email darj karein (Email):");
 
@@ -22,7 +19,6 @@ const Donate = ({ onOpenDonate }) => {
     setLoading(true);
 
     try {
-      // 1. Backend se Razorpay Order ID generate karwayein
       const orderRes = await fetch(`${API_BASE_URL}/api/donate/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,16 +32,14 @@ const Donate = ({ onOpenDonate }) => {
         return;
       }
 
-      // 2. Razorpay Checkout options setup karein
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Frontend .env se key uthayega
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
         amount: orderData.order.amount,
         currency: "INR",
         name: "Awadh Vidya Arogya Foundation",
         description: "Support the 2040 Vision",
         order_id: orderData.order.id,
         handler: async function (response) {
-          // Jab user successfully pay kar dega, tab yeh chalega:
           try {
             const verifyRes = await fetch(`${API_BASE_URL}/api/donate/verify`, {
               method: 'POST',
@@ -71,16 +65,10 @@ const Donate = ({ onOpenDonate }) => {
             alert("Payment verify karne mein error aayi.");
           }
         },
-        prefill: {
-          name: name,
-          email: email,
-        },
-        theme: {
-          color: "#0052AD", // AVAF ka primary blue color
-        },
+        prefill: { name, email },
+        theme: { color: "#0052AD" },
       };
 
-      // Razorpay Popup window open karein
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
@@ -92,9 +80,12 @@ const Donate = ({ onOpenDonate }) => {
   };
 
   return (
-    <section id="donate" className="relative py-24 md:py-32 bg-white px-6 overflow-hidden font-sans">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[45rem] h-[45rem] bg-[#0052AD]/5 blur-[140px] rounded-full pointer-events-none" />
+    // 'isolate' aur 'z-10' जोड़ा गया ताकि यह सेक्शन बाकी वेबसाइट लेआउट के ऊपर रहे और ओवरलैप न करे
+    <section id="donate" className="relative py-24 md:py-32 bg-white px-6 overflow-hidden font-sans isolate z-10">
+      {/* Background blur circle को z-0 किया गया ताकि यह फॉर्म या टेक्स्ट को न छुपाए */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[45rem] h-[45rem] bg-[#0052AD]/5 blur-[140px] rounded-full pointer-events-none z-0" />
       
+      {/* Grid container को z-10 दिया गया है */}
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center relative z-10">
         
         <div className="lg:pr-10">
@@ -131,7 +122,8 @@ const Donate = ({ onOpenDonate }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-100 p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] relative">
+        {/* पेमेंट कार्ड को 'z-20' दिया गया है ताकि कोई भी फ्लोटिंग या पॉपअप एलिमेंट इसके पीछे न दबे */}
+        <div className="bg-white border border-slate-100 p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] relative z-20">
           <h4 className="text-[#1e293b] font-semibold text-lg mb-8 tracking-tight">Select your contribution (₹)</h4>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -161,7 +153,6 @@ const Donate = ({ onOpenDonate }) => {
             <span className="absolute left-7 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-2xl">₹</span>
           </div>
 
-          {/* Button par handleRazorpayPayment trigger kiya */}
           <button 
             onClick={handleRazorpayPayment}
             disabled={loading}

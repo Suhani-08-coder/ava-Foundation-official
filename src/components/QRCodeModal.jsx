@@ -11,16 +11,15 @@ const QRCodeModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const handleCopy = () => {
-  navigator.clipboard.writeText(UPI_ID); 
-  setCopied(true);
-  setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(UPI_ID); 
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
     try {
-      
       const res = await axios.post(getEndpoint('/api/donate'), formData);
       if(res.data.success) {
         setStatus('success');
@@ -33,58 +32,61 @@ const QRCodeModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-150 flex items-center justify-center px-4">
-     
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+    // यहां z-150 को सुधारकर z-[9999] (कस्टम हाई स्टैकिंग) कर दिया गया है ताकि यह दुनिया के किसी भी लेआउट के हमेशा ऊपर रहे
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 overflow-y-auto py-6">
       
-      {/* Main Box */}
-      <div className="relative bg-white rounded-3xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row shadow-2xl">
+      {/* Background black overlay - इस पर भी z-0 और रिलेटिविटी सेट की है */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-0" onClick={onClose} />
+      
+      {/* Main Box - इसमें relative और z-10 फिक्स किया गया है ताकि कंटेंट हमेशा ऊपर चमके */}
+      <div className="relative bg-white rounded-3xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row shadow-2xl z-10 my-auto animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Close Button */}
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-2 bg-slate-100 hover:bg-slate-200 rounded-full">
+        {/* Close Button - इसे z-30 किया ताकि इमेज या टेक्स्ट के पीछे न छुपे */}
+        <button onClick={onClose} className="absolute top-4 right-4 z-30 p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
           <X size={20} />
         </button>
 
         {/* ---  QR CODE --- */}
-        <div className="w-full md:w-5/12 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
+        <div className="w-full md:w-5/12 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100 relative z-10">
           <h4 className="text-xl font-bold text-slate-800 mb-2">Scan & Donate</h4>
           <p className="text-[#0052AD] text-xs font-bold uppercase tracking-widest mb-6">Awadh Vidya Arogya Foundation</p>
           
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col items-center">
-             {/* UPDATED IMAGE NAME HERE */}
-             {/* Make sure AVAF_QR.jfif is inside your 'public' folder */}
+             {/* public folder की इमेज को टूटने से बचाने के लिए सेफ स्टाइल */}
              <img 
                src="/AVAF_QR.jfif" 
                alt="Scan QR to Pay" 
                className="w-48 h-48 object-contain"
-               onError={(e) => {e.target.style.display='none'; e.target.parentElement.innerText='Image Not Found in public folder'}} 
+               onError={(e) => {
+                 e.target.style.display='none'; 
+                 e.target.parentElement.innerHTML='<div className="w-48 h-48 flex items-center justify-center text-slate-400 font-semibold text-center text-xs p-2 bg-slate-50 rounded-xl">QR Code Image Not Found<br/>in public folder</div>';
+               }} 
              />
              <p className="text-[10px] text-slate-400 mt-2 font-semibold">Accepted: GPay / PhonePe / Paytm</p>
           </div>
 
-          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 w-full max-w-280px">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 w-full max-w-[280px]">
             <div className="flex-1 min-w-0">
                <p className="text-[9px] text-slate-400 font-bold uppercase">Official UPI ID</p>
-               {/* Display ID text */}
-              <p className="text-slate-800 text-xs font-bold truncate">{UPI_ID}</p>
+               <p className="text-slate-800 text-xs font-bold truncate">{UPI_ID}</p>
             </div>
-            <button onClick={handleCopy} className="text-[#0052AD] p-1 hover:bg-slate-50 rounded-lg" title="Copy UPI ID">
+            <button onClick={handleCopy} className="text-[#0052AD] p-1 hover:bg-slate-50 rounded-lg shrink-0" title="Copy UPI ID">
               {copied ? <CheckCircle size={18} className="text-green-500" /> : <Copy size={18} />}
             </button>
           </div>
         </div>
 
         {/* ---  FORM --- */}
-        <div className="w-full md:w-7/12 p-8 md:p-10">
+        <div className="w-full md:w-7/12 p-8 md:p-10 relative z-10 bg-white">
           
           {status === 'success' ? (
-            <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="h-full flex flex-col items-center justify-center text-center py-12">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle size={32} className="text-green-600" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800">Thank You!</h3>
               <p className="text-slate-500 mt-2">Your receipt has been sent to your email.</p>
-              <button onClick={() => setStatus('idle')} className="mt-6 text-[#0052AD] font-bold underline">
+              <button onClick={() => setStatus('idle')} className="mt-6 text-[#0052AD] font-bold underline hover:text-[#003d82]">
                 Donate Again
               </button>
             </div>
@@ -101,14 +103,14 @@ const QRCodeModal = ({ isOpen, onClose }) => {
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase">Your Name</label>
                   <input required type="text" placeholder="Full Name" 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD] text-slate-800"
                     value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase">Amount (₹)</label>
                   <input required type="number" placeholder="1000" 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD] text-slate-800"
                     value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})}
                   />
                 </div>
@@ -117,7 +119,7 @@ const QRCodeModal = ({ isOpen, onClose }) => {
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
                 <input required type="email" placeholder="To receive receipt" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-[#0052AD] text-slate-800"
                   value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
@@ -125,12 +127,12 @@ const QRCodeModal = ({ isOpen, onClose }) => {
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase">UPI Transaction ID / UTR</label>
                 <input required type="text" placeholder="e.g. 403819228..." 
-                  className="w-full bg-white border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 font-mono text-sm outline-none focus:border-[#0052AD]"
+                  className="w-full bg-white border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 font-mono text-sm outline-none focus:border-[#0052AD] text-slate-800"
                   value={formData.transactionId} onChange={(e) => setFormData({...formData, transactionId: e.target.value})}
                 />
               </div>
 
-              <button disabled={status === 'loading'} className="w-full bg-[#0052AD] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs mt-4 flex items-center justify-center gap-2 hover:bg-[#003d82] transition-colors">
+              <button disabled={status === 'loading'} className="w-full bg-[#0052AD] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs mt-4 flex items-center justify-center gap-2 hover:bg-[#003d82] transition-colors disabled:opacity-50">
                 {status === 'loading' ? 'Generating Receipt...' : <>Confirm & Get Receipt <Send size={16} /></>}
               </button>
             </form>
