@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Search, X, Play, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getEndpoint } from '../config';
 
 const MissionGallery = () => {
   const [gallery, setGallery] = useState([]);
@@ -10,14 +11,13 @@ const MissionGallery = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    
-    fetch('http://localhost:5000/api/media')
+   
+    fetch(getEndpoint('/api/media'))
       .then(res => res.json())
       .then(data => setGallery(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error fetching gallery:", err));
   }, []);
 
-  
   const tabs = [
     { id: 'all', label: 'All Archive' },
     { id: 'vidya', label: 'Vidya (Education)' },
@@ -27,20 +27,21 @@ const MissionGallery = () => {
 
   const filteredGallery = gallery.filter(item => {
     const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesTab = activeTab === 'all' || item.category === activeTab;
     return matchesSearch && matchesTab;
   });
 
+  
   const getMediaUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:5000${url}`;
+    return `http://localhost:8080${url}`;
   };
 
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-[#0052AD] selection:text-white">
-      <nav className="p-6 border-b border-slate-50 sticky top-0 bg-white/90 backdrop-blur-md z-50">
+      
+      <nav className="p-6 pt-28 md:pt-32 border-b border-slate-50 sticky top-0 bg-white/90 backdrop-blur-md z-40">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <button 
             onClick={() => navigate('/')} 
@@ -49,7 +50,7 @@ const MissionGallery = () => {
             <ChevronLeft size={16} /> Back to Home
           </button>
 
-          <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 overflow-x-auto max-w-full">
+          <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 overflow-x-auto max-w-full relative z-10">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -70,7 +71,7 @@ const MissionGallery = () => {
             <input 
               type="text"
               placeholder="Filter missions..."
-              className="w-full pl-11 pr-10 py-2.5 bg-slate-50 rounded-xl text-[11px] font-bold outline-none border border-transparent focus:border-[#0052AD]/10 transition-all"
+              className="w-full pl-11 pr-10 py-2.5 bg-slate-50 rounded-xl text-[11px] font-bold outline-none border border-transparent focus:border-[#0052AD]/10 transition-all text-slate-800"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -85,7 +86,7 @@ const MissionGallery = () => {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-8 py-20">
+      <main className="max-w-7xl mx-auto px-8 py-20 relative z-30">
         <div className="mb-12 text-center md:text-left">
           <h2 className="text-4xl md:text-5xl font-extrabold text-[#1e293b] tracking-tighter uppercase mb-2">
             Mission <span className="text-[#0052AD]">Archive</span>
@@ -128,9 +129,6 @@ const MissionGallery = () => {
                     className="w-full object-cover group-hover:scale-105 transition-transform duration-700" 
                     alt={item.title} 
                     loading="lazy"
-                    onError={(e) => {
-                        e.target.style.display = 'none';
-                    }}
                   />
                 )}
 

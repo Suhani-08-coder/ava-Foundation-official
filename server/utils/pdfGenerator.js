@@ -1,12 +1,12 @@
 const PDFDocument = require('pdfkit');
 
-const buildPDF = (dataCallback, endCallback, donationData) => {
+
+const buildReceipt = (donationData, dataCallback, endCallback) => {
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
   doc.on('data', dataCallback);
   doc.on('end', endCallback);
 
-  // -- Header --
   doc
     .fontSize(20)
     .font('Helvetica-Bold')
@@ -19,9 +19,8 @@ const buildPDF = (dataCallback, endCallback, donationData) => {
     .text('Niti Aayog Verified | Reg. No: AVAF-2024-X', { align: 'center' });
 
   doc.moveDown();
-  doc.moveTo(50, 100).lineTo(550, 100).stroke(); // Line separator
+  doc.moveTo(50, 110).lineTo(545, 110).stroke();
 
-  // -- Receipt Details --
   doc.moveDown(2);
   doc.fontSize(14).font('Helvetica-Bold').text('DONATION RECEIPT', { align: 'center' });
   doc.moveDown();
@@ -30,7 +29,6 @@ const buildPDF = (dataCallback, endCallback, donationData) => {
   doc.text(`Receipt ID: ${donationData.transactionId || 'N/A'}`);
   doc.moveDown();
 
-  // -- Donor Info --
   doc.text(`Received with gratitude from: ${donationData.name}`);
   doc.text(`Email: ${donationData.email}`);
   doc.moveDown();
@@ -38,9 +36,8 @@ const buildPDF = (dataCallback, endCallback, donationData) => {
   doc.font('Helvetica-Bold').text(`Amount Donated: ₹${donationData.amount}`, { align: 'left' });
   
   doc.moveDown(2);
-  doc.font('Helvetica-Oblique').text('"Your contribution helps us build a better future."', { align: 'center', color: 'grey' });
+  doc.font('Helvetica-Oblique').text('"Your contribution helps us build a better future."', { align: 'center' });
 
-  // -- Footer --
   doc.moveDown(4);
   doc.fontSize(10).font('Helvetica').text('Authorized Signatory', { align: 'right' });
   doc.text('Awadh Vidya Arogya Foundation', { align: 'right' });
@@ -48,4 +45,5 @@ const buildPDF = (dataCallback, endCallback, donationData) => {
   doc.end();
 };
 
-module.exports = { buildPDF };
+
+module.exports = { buildReceipt };

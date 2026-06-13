@@ -10,29 +10,24 @@ const Hero = ({ onOpenDonate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 
-  // 1. Fixed URL syntax and added fallback
   useEffect(() => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-    fetch(`${apiBase}/api/media`) 
+    fetch(getEndpoint('/api/media'))
       .then(res => res.json())
       .then(data => {
-        // Sirf wahi media dikhayein jo active missions ya exploration ke liye hain
         const missionMedia = data.filter(item => item.category === 'mission' || item.category === 'explore');
         setGallery(missionMedia);
       })
       .catch(err => {
         console.error("Hero Fetch Error:", err);
-        // Fallback placeholder data if API fails
         setGallery([{ _id: 'default', type: 'photo', url: '/assets/fallback.jpg', title: 'AVAF Impact' }]);
       });
   }, []);
 
-  // 2. Smooth Slider Logic
   useEffect(() => {
     if (gallery.length > 1) {
       const timer = setInterval(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % gallery.length);
-      }, 4000); // 4 seconds is better for readability
+      }, 4000);
       return () => clearInterval(timer);
     }
   }, [gallery]);
@@ -103,7 +98,6 @@ const Hero = ({ onOpenDonate }) => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center px-6 pt-28 pb-20 overflow-hidden bg-[#fafafa]">
-      {/* Background Decorative Circles */}
       <div className="absolute top-1/4 -left-20 w-[45rem] h-[45rem] bg-[#00A859]/5 blur-[160px] rounded-full pointer-events-none animate-pulse" />
       <div className="absolute bottom-1/4 -right-20 w-[40rem] h-[40rem] bg-[#0052AD]/5 blur-[160px] rounded-full pointer-events-none" />
 
@@ -125,12 +119,11 @@ const Hero = ({ onOpenDonate }) => {
               Support Mission <ArrowUpRight size={18} />
             </button>
             <button onClick={() => setShowGallery(true)} className="flex items-center gap-3 text-[#1e293b] font-black text-[11px] uppercase tracking-widest group border-b-2 border-transparent hover:border-[#00A859] transition-all pb-1">
-              Explore<ChevronRight size={16} className="text-[#00A859] group-hover:translate-x-1 transition-transform" />
+              Explore Us<ChevronRight size={16} className="text-[#00A859] group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </motion.div>
 
-        {/* Live Feed Container */}
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }} className="relative flex justify-center items-center">
           <div className="relative w-full aspect-square max-w-[42rem] rounded-[5.5rem] bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] flex items-center justify-center overflow-hidden border-[12px] border-white group">
             <AnimatePresence mode="wait">

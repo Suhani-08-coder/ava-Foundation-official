@@ -4,6 +4,7 @@ import { ShieldCheck, Lock, User } from 'lucide-react';
 import { getEndpoint } from '../config'; 
 
 const Login = () => {
+ 
   const [formData, setFormData] = useState({ userid: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,16 +19,19 @@ const Login = () => {
       const response = await fetch(getEndpoint('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData), 
       });
 
       const data = await response.json();
+      console.log("Backend se aaya asli response:", data);
 
       if (response.ok) {
         localStorage.setItem('avaf_token', data.token);
         localStorage.setItem('avaf_user', JSON.stringify(data.user));
         navigate('/admin');
       } else {
+        
+        console.error("Login fail hone ki wajah:", data.message || data.error || data);
         setError(data.message || 'Access Denied');
       }
     } catch (err) {
@@ -50,12 +54,13 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
             <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            
             <input
               type="text"
               placeholder="ADMIN ID"
               className="w-full pl-14 pr-6 py-5 bg-slate-50 rounded-2xl outline-none text-xs font-bold tracking-widest text-slate-800"
-              value={formData.userid}
-              onChange={(e) => setFormData({ ...formData, userid: e.target.value })}
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
             />
           </div>

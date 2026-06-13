@@ -65,7 +65,7 @@ const leadershipTeam = [
     name: "Shiv Vishvakarma",
     role: "Chief Regional Officer (CRO)",
     description: "Oversees regional operations and ensures effective implementation of foundation initiatives across different zones.",
-    photo:"/team/sd.jpeg" , 
+    photo:"/team/shiv.jpeg" , 
   },
   {
     id: 9,

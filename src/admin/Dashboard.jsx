@@ -262,7 +262,7 @@ const Dashboard = () => {
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setIsSidebarOpen(false); }} />
       </div>
 
-      <main className="flex-1 p-6 lg:p-12 overflow-y-auto w-full">
+      <main className="flex-1 p-6 pt-32 lg:p-12 lg:pt-36 overflow-y-auto w-full">
         <header className="mb-12 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <button className="lg:hidden p-3 bg-white rounded-xl shadow-sm" onClick={() => setIsSidebarOpen(true)}>

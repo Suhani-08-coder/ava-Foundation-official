@@ -8,61 +8,66 @@
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     scroll-behavior: smooth;
     
-    /* Colors */
-    --color-dominant: #ffffff;
-    --color-secondary: #10b981;
-    --color-accent: #fb7185;
-    
-    --shuddhi-green: #00A859;
-    --shuddhi-blue: #0052AD;
-    --shuddhi-gold: #C59D5F;
-    --bg-dark: #040d0c;
+    /* AVAF Brand Theme Colors */
+    --avaf-navy: #0a1f44;
+    --avaf-blue: #0052AD;
+    --avaf-green: #00A859;
+    --avaf-gold: #C5A059;
+    --slate-dark: #1e293b;
   }
 
   body {
-    @apply bg-white text-slate-800 antialiased selection:bg-[#fb7185] selection:text-white;
+    @apply bg-white text-slate-800 antialiased selection:bg-[#0052AD] selection:text-white;
     margin: 0;
+    padding: 0;
+    overflow-x: hidden;
   }
 }
 
 @layer components {
-  /* Glass Cards */
+  /* Premium NGO Glass Cards */
   .glass-card {
-    @apply bg-white/40 backdrop-blur-xl border border-emerald-100 shadow-[0_20px_50px_-12px_rgba(16,185,129,0.08)];
+    @apply bg-white/70 backdrop-blur-xl border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,82,173,0.05)];
     transition: all 0.5s ease;
   }
 
-  /* Lovable Buttons */
-  .btn-lovable {
-    @apply bg-[#fb7185] text-white font-black uppercase tracking-widest text-[11px] 
-           px-10 py-5 rounded-full shadow-[0_15px_35px_rgba(251,113,133,0.25)] 
-           hover:shadow-[0_20px_45px_rgba(251,113,133,0.4)] hover:-translate-y-1 
-           transition-all duration-300 active:scale-95;
-  }
-
-  .btn-shuddhi {
+  /* AVAF Professional Interactive Buttons */
+  .btn-primary {
     @apply bg-[#0052AD] text-white font-black uppercase tracking-widest text-[11px] 
            px-10 py-5 rounded-full shadow-[0_15px_35px_rgba(0,82,173,0.2)] 
-           hover:bg-[#003d82] hover:-translate-y-1 transition-all active:scale-95;
+           hover:bg-[#0a1f44] hover:-translate-y-1 transition-all duration-300 active:scale-95;
   }
 
-  /* Gradients */
-  .accent-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#10b981] to-[#059669];
+  .btn-secondary {
+    @apply bg-[#0a1f44] text-white font-black uppercase tracking-widest text-[11px] 
+           px-10 py-5 rounded-full shadow-[0_15px_35px_rgba(10,31,68,0.15)] 
+           hover:bg-[#0052AD] hover:-translate-y-1 transition-all duration-300 active:scale-95;
   }
 
-  .accent-gradient-shuddhi {
+  .btn-success {
+    @apply bg-[#00A859] text-white font-black uppercase tracking-widest text-[11px] 
+           px-10 py-5 rounded-full shadow-[0_15px_35px_rgba(0,168,89,0.2)] 
+           hover:bg-[#0a1f44] hover:-translate-y-1 transition-all duration-300 active:scale-95;
+  }
+
+  /* AVAF Official Branding Gradients */
+  .accent-gradient-avaf {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[#00A859] to-[#0052AD];
+  }
+  
+  .gold-gradient-avaf {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#C5A059] to-[#0a1f44];
   }
 }
 
-/* Scrollbar */
+/* Customized Premium Scrollbar Layout */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-slate-50;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-emerald-100 rounded-full hover:bg-[#fb7185] transition-colors;
+  @apply bg-slate-200 rounded-full hover:bg-[#0052AD] transition-colors duration-300;
 }

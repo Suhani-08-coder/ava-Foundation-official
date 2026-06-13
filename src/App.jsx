@@ -1,5 +1,5 @@
 import React, { useState } from 'react'; 
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 // --- COMPONENTS ---
 import Navbar from './components/Navbar';
@@ -31,7 +31,6 @@ function HomeLayout({ openModal }) {
       <section id="vision"><About /></section>
       <section id="impact"><Impact onOpenGallery={handleOpenGallery} /></section>
       
-      {/* Join Section */}
       <section id="join-section" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6 text-center mb-12">
           <h2 className="text-4xl font-black text-[#1e293b] uppercase tracking-tighter mb-4">
@@ -49,6 +48,37 @@ function HomeLayout({ openModal }) {
   );
 }
 
+// --- APP CONTENT WRAPPER (For Location Checking) ---
+function AppContent({ isModalOpen, openModal, closeModal }) {
+  const location = useLocation();
+  
+  // Check karega ki user admin ya login page par toh nahi hai
+  const isAdminPage = location.pathname.startsWith('/admin') || location.pathname === '/login';
+
+  return (
+    <div className="min-h-screen bg-white font-sans text-slate-900">
+      {/* Agar admin ya login page nahi hai, tabhi public Navbar dikhao */}
+      {!isAdminPage && <Navbar onOpenDonate={openModal} />}
+      
+      <main>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/explore" element={<MissionGallery />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/" element={<HomeLayout openModal={openModal} />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+
+      {/* Agar admin ya login page nahi hai, tabhi public Footer dikhao */}
+      {!isAdminPage && <Footer />}
+      
+      <QRCodeModal isOpen={isModalOpen} onClose={closeModal} />
+    </div>
+  );
+}
+
 // --- MAIN APP COMPONENT ---
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,33 +87,11 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-white font-sans text-slate-900">
-        {/* Navbar ko Routes se bahar nikala taaki ye har page (Team, Explore) par dikhe */}
-        <Navbar onOpenDonate={openModal} />
-        
-        <main>
-          <Routes>
-            {/* 1. Admin & Login Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<Dashboard />} />
-            
-            {/* 2. Standalone Pages */}
-            <Route path="/explore" element={<MissionGallery />} />
-            <Route path="/team" element={<TeamPage />} />
-
-            {/* 3. Home Page (Landing) */}
-            <Route path="/" element={<HomeLayout openModal={openModal} />} />
-            
-            {/* 4. Fallback */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
-
-        <Footer />
-        
-        {/* Global Donation Modal */}
-        <QRCodeModal isOpen={isModalOpen} onClose={closeModal} />
-      </div>
+      <AppContent 
+        isModalOpen={isModalOpen} 
+        openModal={openModal} 
+        closeModal={closeModal} 
+      />
     </Router>
   );
 }
