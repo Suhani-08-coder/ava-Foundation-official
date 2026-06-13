@@ -7,7 +7,6 @@ const ImpactManager = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    
     fetch(getEndpoint('/api/admin/impact-stats'))
       .then(res => res.json())
       .then(data => setStats({ 
@@ -20,12 +19,11 @@ const ImpactManager = () => {
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      
       const res = await fetch(getEndpoint('/api/admin/update-impact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vidyaImpact: Number(stats.literacy),
+          literacyImpact: Number(stats.literacy),
           arogyaReach: Number(stats.arogya)
         })
       });
@@ -83,7 +81,7 @@ const ImpactManager = () => {
         <button 
           onClick={handleUpdate}
           disabled={loading}
-          className="flex items-center justify-center gap-2 bg-[#1e293b] text-white p-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-[#C5A059] transition-all disabled:opacity-50 h-56px"
+          className="flex items-center justify-center gap-2 bg-[#1e293b] text-white p-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-[#C5A059] transition-all disabled:opacity-50 h-[56px]"
         >
           {loading ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
           {loading ? 'Syncing...' : 'Push Updates Live'}

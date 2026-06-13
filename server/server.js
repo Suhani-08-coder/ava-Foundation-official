@@ -17,10 +17,32 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'avaf_secure_node_secret';
 
+
+// --- CORS CONFIGURATION ---
+const allowedOrigins = [
+  'http://localhost:5173', 
+  'https://awadhvidyaarogyafoundation.org', 
+  'https://www.awadhvidyaarogyafoundation.org'
+];
+
 app.use(cors({ 
-  origin: ['https://awadhvidyaarogyafoundation.org', 'https://www.awadhvidyaarogyafoundation.org'], 
+  origin: function (origin, callback) {
+    
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true 
 }));
+
+
+app.options('*', cors());
 app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -175,6 +197,19 @@ app.post('/api/admin/change-password', async (req, res) => {
 });
 
 app.post('/api/volunteers/signup', async (req, res) => res.status(201).json(await Volunteer.create(req.body)));
+app.post('/api/admin/issue-cert/:id', async (req, res) => {
+  try {
+    const volunteer = await Volunteer.findByIdAndUpdate(
+      req.params.id, 
+      { certIssued: true }, 
+      { new: true }
+    );
+    if (!volunteer) return res.status(404).json({ message: "Volunteer not found" });
+    res.json({ success: true, volunteer });
+  } catch (err) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 app.get('/api/admin/volunteers', async (req, res) => res.json(await Volunteer.find().sort({ joinedAt: -1 })));
 
 app.get('/api/admin/impact-stats', async (req, res) => {

@@ -7,14 +7,12 @@ export const ORG_EMAIL = import.meta.env.VITE_ORG_EMAIL ? import.meta.env.VITE_O
 export const getEndpoint = (path) => {
   if (!path) return '';
   
- 
   const trimmedPath = path.trim();
 
   if (trimmedPath.startsWith('http') || trimmedPath.startsWith('https')) {
     return trimmedPath;
   }
   
-  // Slash path ko properly normalize karein
   const cleanPath = trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
   return `${API_BASE_URL}${cleanPath}`;
 };

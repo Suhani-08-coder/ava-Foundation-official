@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, User } from 'lucide-react';
-import { API_BASE_URL } from '../config'; 
+import { getEndpoint } from '../config'; 
 
 const Login = () => {
   const [formData, setFormData] = useState({ userid: '', password: '' });
@@ -15,8 +15,7 @@ const Login = () => {
     setError('');
 
     try {
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(getEndpoint('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
